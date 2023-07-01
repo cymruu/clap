@@ -135,3 +135,11 @@ fn subcommand_last() {
         name,
     );
 }
+
+#[test]
+fn command_wrapped() {
+    let mut cmd = common::binary_wrapped("cli");
+
+    let mut buf = Vec::new();
+    clap_complete::generate(clap_complete::shells::Bash, &mut cmd, "wrapper", &mut buf);
+}

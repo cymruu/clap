@@ -295,3 +295,11 @@ pub fn assert_matches_path(
         .normalize_paths(false)
         .matches_path(expected_path, buf);
 }
+
+pub fn binary_wrapped(name: &'static str) -> clap::Command {
+    let cmd = basic_command(name).bin_name("cli");
+    let command = clap::Command::new("wrapper")
+        .bin_name("wrapper")
+        .subcommand(cmd);
+    return command;
+}
