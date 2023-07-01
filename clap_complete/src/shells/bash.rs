@@ -72,40 +72,55 @@ complete -F _{name} -o bashdefault -o default {name}
     }
 }
 
-fn all_subcommands(cmd: &Command) -> String {
-    debug!("all_subcommands");
-
+fn get_subcommands(cmd: &Command, get_aliases: bool) -> Vec<(String, String, String)> {
     fn add_command(
         parent_fn_name: &str,
         cmd: &Command,
         subcmds: &mut Vec<(String, String, String)>,
+        get_aliases: bool,
     ) {
         let fn_name = format!(
             "{parent_fn_name}__{cmd_name}",
             parent_fn_name = parent_fn_name,
-            cmd_name = cmd.get_name().to_string().replace('-', "__")
+            cmd_name = cmd.get_name().to_string()
         );
         subcmds.push((
             parent_fn_name.to_string(),
             cmd.get_name().to_string(),
             fn_name.clone(),
         ));
-        for alias in cmd.get_visible_aliases() {
-            subcmds.push((
-                parent_fn_name.to_string(),
-                alias.to_string(),
-                fn_name.clone(),
-            ));
-        }
+        if get_aliases {
+            for alias in cmd.get_visible_aliases() {
+                subcmds.push((
+                    parent_fn_name.to_string(),
+                    alias.to_string(),
+                    fn_name.clone(),
+                ));
+            }
+        };
         for subcmd in cmd.get_subcommands() {
-            add_command(&fn_name, subcmd, subcmds);
+            add_command(&fn_name, subcmd, subcmds, get_aliases);
         }
     }
     let mut subcmds = vec![];
-    let fn_name = cmd.get_name().replace('-', "__");
+    let fn_name = cmd.get_name();
     for subcmd in cmd.get_subcommands() {
-        add_command(&fn_name, subcmd, &mut subcmds);
+        add_command(&fn_name, subcmd, &mut subcmds, get_aliases);
     }
+    subcmds
+}
+
+fn all_subcommands(cmd: &Command) -> String {
+    debug!("all_subcommands");
+    let mut subcmds = get_subcommands(cmd, true);
+    let mut subcmds: Vec<_> = subcmds
+        .iter_mut()
+        .map(|x| {
+            x.0 = x.0.replace('-', "__");
+            x.2 = x.2.replace('-', "__");
+            x
+        })
+        .collect();
     subcmds.sort();
 
     let mut cases = vec![String::new()];
@@ -124,41 +139,10 @@ fn subcommand_details(cmd: &Command) -> String {
     debug!("subcommand_details");
 
     let mut subcmd_dets = vec![String::new()];
-    let mut scs = utils::all_subcommands(cmd)
-        .iter()
-        .map(|x| x.1.replace(' ', "__"))
-        .collect::<Vec<_>>();
-    scs.sort();
 
-    fn add_command(
-        parent_fn_name: &str,
-        cmd: &Command,
-        subcmds: &mut Vec<(String, String, String)>,
-    ) {
-        let fn_name = format!(
-            "{parent_fn_name}__{cmd_name}",
-            parent_fn_name = parent_fn_name,
-            cmd_name = cmd.get_name().to_string()
-        );
-        subcmds.push((
-            parent_fn_name.to_string(),
-            cmd.get_name().to_string(),
-            fn_name.clone(),
-        ));
-        for subcmd in cmd.get_subcommands() {
-            add_command(&fn_name, subcmd, subcmds);
-        }
-    }
-    let mut subcmds = vec![];
-    let fn_name = cmd.get_name();
-    for subcmd in cmd.get_subcommands() {
-        add_command(&fn_name, subcmd, &mut subcmds);
-    }
+    let subcmds = get_subcommands(cmd, false);
     let mut subcmds = subcmds.iter().map(|x| &x.2).collect::<Vec<_>>();
     subcmds.sort();
-
-    debug!("scs: {:?}", scs);
-    debug!("subcmds: {:?}", subcmds);
 
     subcmd_dets.extend(subcmds.iter().map(|sc| {
         format!(
