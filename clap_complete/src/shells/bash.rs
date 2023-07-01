@@ -124,14 +124,42 @@ fn subcommand_details(cmd: &Command) -> String {
     debug!("subcommand_details");
 
     let mut subcmd_dets = vec![String::new()];
-    let mut scs = utils::all_subcommands(cmd)
-        .iter()
-        .map(|x| x.1.replace(' ', "__"))
-        .collect::<Vec<_>>();
+    
+    fn add_command(
+        parent_fn_name: &str,
+        cmd: &Command,
+        subcmds: &mut Vec<(String, String, String)>,
+    ) {
+        let fn_name = format!(
+            "{parent_fn_name}__{cmd_name}",
+            parent_fn_name = parent_fn_name,
+            cmd_name = cmd.get_name().to_string().replace('-', "__")
+        );
+        subcmds.push((
+            parent_fn_name.to_string(),
+            cmd.get_name().to_string(),
+            fn_name.clone(),
+        ));
+        for alias in cmd.get_visible_aliases() {
+            subcmds.push((
+                parent_fn_name.to_string(),
+                alias.to_string(),
+                fn_name.clone(),
+            ));
+        }
+        for subcmd in cmd.get_subcommands() {
+            add_command(&fn_name, subcmd, subcmds);
+        }
+    }
+    let mut subcmds = vec![];
+    let fn_name = cmd.get_name().replace('-', "__");
+    for subcmd in cmd.get_subcommands() {
+        add_command(&fn_name, subcmd, &mut subcmds);
+    }
+    subcmds.sort();
+        
 
-    scs.sort();
-
-    subcmd_dets.extend(scs.iter().map(|sc| {
+    subcmd_dets.extend(subcmds.iter().map(|(_0, _1, _2)| _2).map(|sc| {
         format!(
             "{subcmd})
             opts=\"{sc_opts}\"

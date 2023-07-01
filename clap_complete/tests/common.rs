@@ -281,6 +281,14 @@ pub fn subcommand_last(name: &'static str) -> clap::Command {
         .subcommands([clap::Command::new("foo"), clap::Command::new("bar")])
 }
 
+pub fn command_wrapped(name: &'static str) -> clap::Command {
+    let cmd = basic_command(name).bin_name("cli");
+    let command = clap::Command::new("wrapper")
+        .bin_name("wrapper")
+        .subcommand(cmd);
+    return command;
+}
+
 pub fn assert_matches_path(
     expected_path: impl AsRef<std::path::Path>,
     gen: impl clap_complete::Generator,

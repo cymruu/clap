@@ -1,0 +1,22 @@
+("wrapper", "cli", "wrapper__cli")
+("wrapper", "help", "wrapper__help")
+("wrapper__cli", "help", "wrapper__cli__help")
+("wrapper__cli", "test", "wrapper__cli__test")
+("wrapper__cli__help", "help", "wrapper__cli__help__help")
+("wrapper__cli__help", "test", "wrapper__cli__help__test")
+("wrapper__help", "cli", "wrapper__help__cli")
+("wrapper__help", "help", "wrapper__help__help")
+("wrapper__help__cli", "test", "wrapper__help__cli__test")
+
+
+[
+  "cli", 
+  "wrapper__help", 
+  "cli__test", 
+  "cli__help", 
+  "cli__help__test", 
+  "cli__help__help", 
+  "wrapper__help__cli", 
+  "wrapper__help__help",
+   "wrapper__help__cli__test"
+  ]

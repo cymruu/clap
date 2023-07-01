@@ -41,7 +41,6 @@ pub fn subcommands(p: &Command) -> Vec<(String, String)> {
 
     for sc in p.get_subcommands() {
         let sc_bin_name = sc.get_bin_name().unwrap();
-
         debug!(
             "subcommands:iter: name={}, bin_name={}",
             sc.get_name(),
@@ -171,6 +170,20 @@ mod tests {
     fn test_subcommands() {
         let cmd = built_with_version();
 
+        assert_eq!(
+            subcommands(&cmd),
+            vec![
+                ("test".to_string(), "my-cmd test".to_string()),
+                ("hello".to_string(), "my-cmd hello".to_string()),
+                ("help".to_string(), "my-cmd help".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_subcommands_2() {
+        let mut cmd = built_with_version().subcommand(clap::Command::new("test2").bin_name("my-cmd"));
+        cmd.build();
         assert_eq!(
             subcommands(&cmd),
             vec![
